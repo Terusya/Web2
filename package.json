@@ -4,15 +4,21 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
-    "git",
-    "--version"
+    "build": "tsc",
+    "start": "node dist/app.ts",
+    "dev": "nodemon -e ts --exec ts-node ./src/app.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^9.25.1"
+    "@types/body-parser": "^1.19.5",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.3",
+    "eslint": "^9.25.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "acorn": "^8.14.1",
@@ -21,6 +27,7 @@
     "ansi-styles": "^4.3.0",
     "argparse": "^2.0.1",
     "balanced-match": "^1.0.2",
+    "body-parser": "^2.2.0",
     "brace-expansion": "^1.1.11",
     "callsites": "^3.1.0",
     "chalk": "^4.1.2",
