@@ -1,26 +1,26 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
+import path from 'path';
 
-// Создаем экземпляр приложения
 const app = express();
 const port = 3000;
 
-// Middleware 1: Логирование запросов
-const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-};
+// Настройка EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-// Подключаем middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(requestLogger);
+// Статические файлы
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Основной роут
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello World!');
+// Маршрут для динамической страницы
+app.get('/page', (req: Request, res: Response) => {
+    const user = req.query.user || 'Guest';
+    res.render('pages/home', {
+        title: 'Главная',
+        user,
+        currentYear: new Date().getFullYear()
+    });
 });
 
-// Запуск сервера
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
