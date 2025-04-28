@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import User from './Models/User';
+import { setupSwagger } from './swagger';
 
 dotenv.config();
 
@@ -17,7 +18,27 @@ mongoose.connect(process.env.MONGO_URI!)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB error:', err));
 
+// Swagger документация
+setupSwagger(app);
+
 // Роуты
+
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     summary: Создание нового пользователя
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       201:
+ *         description: Пользователь успешно создан
+ */
 app.post('/users', async (req: Request, res: Response) => {
     try {
         const user = await User.create(req.body);
@@ -30,6 +51,16 @@ app.post('/users', async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Получение списка пользователей
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Список пользователей
+ */
 app.get('/users', async (req: Request, res: Response) => {
     try {
         const users = await User.find().select('-__v');
@@ -39,17 +70,81 @@ app.get('/users', async (req: Request, res: Response) => {
             data: users
         });
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: 'Internal server error'
-        });
+        handleError(err, res);
     }
 });
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Удаление пользователя
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Пользователь удален
+ */
 app.delete('/users/:id', async (req: Request, res: Response) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         user ? res.status(204).end() : res.status(404).json({ error: 'User not found' });
+    } catch (err) {
+        handleError(err, res);
+    }
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   patch:
+ *     summary: Обновление данных пользователя
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID пользователя
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       200:
+ *         description: Данные пользователя обновлены
+ *       404:
+ *         description: Пользователь не найден
+ *       400:
+ *         description: Ошибка валидации
+ */
+app.patch('/users/:id', async (req: Request, res: Response) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'User not found'
+            });
+        }
+
+        res.json({
+            status: 'success',
+            data: user
+        });
     } catch (err) {
         handleError(err, res);
     }
