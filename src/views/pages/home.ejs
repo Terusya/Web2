@@ -1,10 +1,18 @@
 <%- include('../partials/header') %>
 
-<main>
-    <div class="content">
-        <h2>Hello, <%= user %>!</h2>
-        <p>This is dynamic content generated with EJS</p>
+<div class="user-list">
+  <% users.forEach(user => { %>
+    <div class="user-card">
+      <h3><%= user.name %></h3>
+      <p>Email: <%= user.email %></p>
+      <% if (user.age) { %>
+        <p>Возраст: <%= user.age %></p>
+      <% } %>
+      <form action="/users/<%= user._id %>?_method=DELETE" method="POST">
+        <button type="submit">Удалить</button>
+      </form>
     </div>
-</main>
+  <% }) %>
+</div>
 
 <%- include('../partials/footer') %>

@@ -1,26 +1,74 @@
-import express, { Request, Response } from 'express';
-import path from 'path';
+п»їimport express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import User from './Models/User';
+
+dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-// Настройка EJS
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Статические файлы
-app.use(express.static(path.join(__dirname, 'public')));
+// РџРѕРґРєР»СЋС‡РµРЅРёРµ MongoDB
+mongoose.connect(process.env.MONGO_URI!)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB error:', err));
 
-// Маршрут для динамической страницы
-app.get('/page', (req: Request, res: Response) => {
-    const user = req.query.user || 'Guest';
-    res.render('pages/home', {
-        title: 'Главная',
-        user,
-        currentYear: new Date().getFullYear()
-    });
+// Р РѕСѓС‚С‹
+app.post('/users', async (req: Request, res: Response) => {
+    try {
+        const user = await User.create(req.body);
+        res.status(201).json({
+            status: 'success',
+            data: user
+        });
+    } catch (err) {
+        handleError(err, res);
+    }
 });
 
+app.get('/users', async (req: Request, res: Response) => {
+    try {
+        const users = await User.find().select('-__v');
+        res.json({
+            status: 'success',
+            results: users.length,
+            data: users
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            message: 'Internal server error'
+        });
+    }
+});
+
+app.delete('/users/:id', async (req: Request, res: Response) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        user ? res.status(204).end() : res.status(404).json({ error: 'User not found' });
+    } catch (err) {
+        handleError(err, res);
+    }
+});
+
+// РћР±СЂР°Р±РѕС‚С‡РёРє РѕС€РёР±РѕРє
+const handleError = (err: unknown, res: Response) => {
+    if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(400).json({
+            status: 'fail',
+            errors: Object.values(err.errors).map(e => e.message)
+        });
+    }
+    res.status(500).json({
+        status: 'error',
+        message: 'Internal server error'
+    });
+};
+
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`рџљЂ Server running on port ${port}`);
 });
