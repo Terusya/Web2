@@ -2,70 +2,42 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 
-interface SwaggerOptions {
-    definition: {
-        openapi: string;
-        info: {
-            title: string;
-            version: string;
-            description: string;
-        };
-        servers: Array<{
-            url: string;
-            description: string;
-        }>;
-        components: {
-            schemas: {
-                User: {
-                    type: string;
-                    properties: {
-                        name: { type: string; example: string };
-                        email: { type: string; format: string; example: string };
-                        age: { type: string; example: number; minimum: number };
-                    };
-                    required: string[];
-                };
-            };
-        };
-    };
-    apis: string[];
-}
-
-const options: SwaggerOptions = {
+const options: swaggerJSDoc.Options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'User Management API',
+            title: 'User Auth API',
             version: '1.0.0',
-            description: 'API дл€ управлени€ пользовател€ми'
+            description: 'API дл€ аутентификации и управлени€ пользовател€ми'
         },
-        servers: [
-            {
-                url: 'http://localhost:3000',
-                description: 'Ћокальный сервер'
-            }
+        tags: [
+            { name: 'Authentication', description: '–егистраци€ и вход в систему' },
+            { name: 'Users', description: '”правление пользовател€ми' }
         ],
+        paths: {}, // явно указываем что пути будут добавлены из JSDoc
         components: {
             schemas: {
                 User: {
                     type: 'object',
+                    required: ['name', 'email', 'password'],
                     properties: {
-                        name: {
+                        name: { type: 'string', example: 'John Doe' },
+                        email: { type: 'string', format: 'email', example: 'john@example.com' },
+                        password: {
                             type: 'string',
-                            example: 'John Doe'
+                            example: 'secret123',
+                            minLength: 6
                         },
-                        email: {
-                            type: 'string',
-                            format: 'email',
-                            example: 'john@example.com'
-                        },
-                        age: {
-                            type: 'number',
-                            example: 25,
-                            minimum: 18
-                        }
-                    },
-                    required: ['name', 'email']
+                        age: { type: 'number', minimum: 18, example: 25 }
+                    }
+                },
+                LoginRequest: {
+                    type: 'object',
+                    required: ['email', 'password'],
+                    properties: {
+                        email: { type: 'string', example: 'john@example.com' },
+                        password: { type: 'string', example: 'secret123' }
+                    }
                 }
             }
         }
