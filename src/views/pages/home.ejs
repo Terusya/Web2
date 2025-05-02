@@ -1,16 +1,18 @@
-<%- include('../partials/header') %>
+﻿<%- include('../partials/header') %>
 
 <div class="user-list">
   <% users.forEach(user => { %>
     <div class="user-card">
       <h3><%= user.name %></h3>
-      <p>Email: <%= user.email %></p>
-      <% if (user.age) { %>
-        <p>�������: <%= user.age %></p>
-      <% } %>
-      <form action="/users/<%= user._id %>?_method=DELETE" method="POST">
-        <button type="submit">�������</button>
-      </form>
+      <div class="user-info">
+        <p class="email">📧 Email: <%= user.email %></p>
+        <% if (user.age) { %>
+          <p class="age">🎂 Возраст: <%= user.age %></p>
+        <% } %>
+      </div>
+      <a href="/auth/login-form?email=<%= user.email %>" class="auth-btn">
+        🔑 Аутентифицироваться
+      </a>
     </div>
   <% }) %>
 </div>

@@ -1,6 +1,7 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
+import path from 'path'; // Добавляем модуль для работы с путями
 
 const options: swaggerJSDoc.Options = {
     definition: {
@@ -14,7 +15,12 @@ const options: swaggerJSDoc.Options = {
             { name: 'Authentication', description: 'Регистрация и вход в систему' },
             { name: 'Users', description: 'Управление пользователями' }
         ],
-        paths: {}, // Явно указываем что пути будут добавлены из JSDoc
+        servers: [
+            {
+                url: 'http://localhost:3000',
+                description: 'Локальный сервер'
+            }
+        ],
         components: {
             schemas: {
                 User: {
@@ -42,7 +48,7 @@ const options: swaggerJSDoc.Options = {
             }
         }
     },
-    apis: ['./src/app.ts']
+    apis: [path.join(__dirname, 'app.ts')] // Используем абсолютные пути
 };
 
 export const setupSwagger = (app: Express) => {

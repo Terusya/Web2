@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import User from './Models/User';
 import { setupSwagger } from './swagger';
 import jwt from 'jsonwebtoken';
+import path from 'path';
 
 dotenv.config();
 
@@ -16,9 +17,15 @@ if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRES) {
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'))
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // Подключение MongoDB
 mongoose.connect(process.env.MONGO_URI!)
@@ -29,6 +36,19 @@ mongoose.connect(process.env.MONGO_URI!)
 setupSwagger(app);
 
 // Роуты
+
+app.get('/', async (req: Request, res: Response) => {
+    try {
+        const users = await User.find().select('-password');
+        res.render('pages/home', {
+            title: 'User Management',
+            users,
+            currentYear: new Date().getFullYear()
+        });
+    } catch (err) {
+        handleError(err, res);
+    }
+});
 
 /**
  * @swagger
@@ -184,6 +204,14 @@ app.get('/users', async (req: Request, res: Response) => {
     }
 });
 
+app.get('/auth/login-form', (req: Request, res: Response) => {
+    res.render('pages/login', {
+        title: 'Аутентификация',
+        email: req.query.email || '',
+        currentYear: new Date().getFullYear()
+    });
+});
+
 /**
  * @swagger
  * /users/{id}:
@@ -270,7 +298,7 @@ const handleAuthError = (err: unknown, res: Response) => {
     }
 
     if ((err as any).code === 11000) {
-        return res.status(400).json({
+        return res.status(409).json({
             status: 'fail',
             message: 'Email already exists'
         });
